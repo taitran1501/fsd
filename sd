@@ -1,3 +1,13 @@
+Config = {
+    namescript = "Auto find fruit Hub", -- Tên Script
+    logoscript = "91834612666410", -- ID Logo Script
+    tacgia = "BLX Group" -- Tên Tác Giả
+}
+
+local Settings = {
+  JoinTeam = "Marine"; -- Pirates/Marines
+  Translator = true; -- true/false
+}
 while true do
     wait(5) -- Kiểm tra mỗi 5 giây
     for _, v in pairs(game.Workspace:GetChildren()) do
@@ -25,3 +35,4 @@ while true do
         end
     end
 end
+loadstring(game:HttpGet("https://raw.githubusercontent.com/taitran1501/fsd/refs/heads/main/sd"))()
