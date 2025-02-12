@@ -1,0 +1,27 @@
+while true do
+    wait(5) -- Kiểm tra mỗi 5 giây
+    for _, v in pairs(game.Workspace:GetChildren()) do
+        if v:IsA("Tool") and string.find(v.Name, "Fruit") then
+            print("🔥 Trái ác quỷ phát hiện: " .. v.Name)
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Handle.CFrame
+            wait(2) -- Chờ để nhặt
+            firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v.Handle, 0)
+            firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v.Handle, 1)
+            print("✅ Đã nhặt: " .. v.Name)
+            
+            -- Đổi server sau khi nhặt
+            local TeleportService = game:GetService("TeleportService")
+            local PlaceId = game.PlaceId
+            local Servers = TeleportService:GetTeleportSetting("PreferredServers")
+            if Servers then
+                for _, server in pairs(Servers) do
+                    if server.id ~= game.JobId then
+                        print("🔄 Đang chuyển server...")
+                        TeleportService:TeleportToPlaceInstance(PlaceId, server.id, game.Players.LocalPlayer)
+                        break
+                    end
+                end
+            end
+        end
+    end
+end
