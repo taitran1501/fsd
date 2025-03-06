@@ -5,7 +5,10 @@ _G.Settings = {
     AutoTeleport = true, -- Dịch chuyển đến mục tiêu
     AutoDodge = true, -- Né đòn khi bị tấn công
     AutoServerHop = true, -- Đổi server khi hết mục tiêu
-    KillDelay = 0.5 -- Thời gian delay giữa các lần tấn công
+    KillDelay = 0.5, -- Thời gian delay giữa các lần tấn công
+    UseSkills = true, -- Dùng kỹ năng trái ác quỷ, kiếm, súng
+    AutoAwakenV4 = true, -- Tự động bật V4 nếu có
+    AutoPVP = true -- Tự động bật PVP nếu bị giết
 }
 
 -- Load thư viện hỗ trợ
@@ -27,10 +30,42 @@ function GetNearestPlayer()
     return nearest
 end
 
+-- Hàm bật PVP nếu bị giết
+function AutoEnablePVP()
+    LocalPlayer.Character.Humanoid.Died:Connect(function()
+        if _G.Settings.AutoPVP then
+            game:GetService("VirtualInputManager"):SendKeyEvent(true, "P", false, game)
+        end
+    end)
+end
+
 -- Hàm teleport đến mục tiêu
 function TeleportTo(target)
     if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
         LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+    end
+end
+
+-- Hàm dùng skill + click
+function UseSkills(target)
+    if _G.Settings.UseSkills then
+        local skills = {"Z", "X", "C", "V", "B"}
+        local damageDealt = false
+        for _, key in pairs(skills) do
+            game:GetService("VirtualInputManager"):SendKeyEvent(true, key, false, game)
+            wait(0.2)
+            -- Kiểm tra nếu không gây damage thì đổi mục tiêu
+            if target and target.Character and target.Character:FindFirstChild("Humanoid").Health == target.Character:FindFirstChild("Humanoid").MaxHealth then
+                damageDealt = false
+            else
+                damageDealt = true
+            end
+        end
+        if not damageDealt then
+            AutoKill() -- Đổi mục tiêu
+        end
+        -- Click đánh thường
+        game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 0)
     end
 end
 
@@ -40,10 +75,7 @@ function AutoKill()
         local target = GetNearestPlayer()
         if target then
             if _G.Settings.AutoTeleport then TeleportTo(target) end
-            -- Spam skill (ví dụ skill Z, X, C)
-            game:GetService("VirtualInputManager"):SendKeyEvent(true, "Z", false, game)
-            game:GetService("VirtualInputManager"):SendKeyEvent(true, "X", false, game)
-            game:GetService("VirtualInputManager"):SendKeyEvent(true, "C", false, game)
+            UseSkills(target)
         end
         wait(_G.Settings.KillDelay)
     end
@@ -72,7 +104,19 @@ function ServerHop()
     end
 end
 
+-- Hàm tự động bật V4
+function AutoAwakenV4()
+    while _G.Settings.AutoAwakenV4 do
+        if LocalPlayer.Character:FindFirstChild("AwakeningV4") == nil then
+            game:GetService("VirtualInputManager"):SendKeyEvent(true, "T", false, game)
+        end
+        wait(5)
+    end
+end
+
 -- Chạy script
 spawn(AutoKill)
 spawn(AutoDodge)
 spawn(ServerHop)
+spawn(AutoAwakenV4)
+spawn(AutoEnablePVP)
