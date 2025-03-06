@@ -1,38 +1,78 @@
-Config = {
-    namescript = "Auto find fruit Hub", -- Tên Script
-    logoscript = "91834612666410", -- ID Logo Script
-    tacgia = "BLX Group" -- Tên Tác Giả
+--// AUTO FARM BOUNTY - Blox Fruits //
+
+_G.Settings = {
+    AutoKill = true, -- Tự động giết người chơi gần nhất
+    AutoTeleport = true, -- Dịch chuyển đến mục tiêu
+    AutoDodge = true, -- Né đòn khi bị tấn công
+    AutoServerHop = true, -- Đổi server khi hết mục tiêu
+    KillDelay = 0.5 -- Thời gian delay giữa các lần tấn công
 }
 
-local Settings = {
-  JoinTeam = "Marine"; -- Pirates/Marines
-  Translator = true; -- true/false
-}
-while true do
-    wait(5) -- Kiểm tra mỗi 5 giây
-    for _, v in pairs(game.Workspace:GetChildren()) do
-        if v:IsA("Tool") and string.find(v.Name, "Fruit") then
-            print("🔥 Trái ác quỷ phát hiện: " .. v.Name)
-            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.Handle.CFrame
-            wait(2) -- Chờ để nhặt
-            firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v.Handle, 0)
-            firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v.Handle, 1)
-            print("✅ Đã nhặt: " .. v.Name)
-            
-            -- Đổi server sau khi nhặt
-            local TeleportService = game:GetService("TeleportService")
-            local PlaceId = game.PlaceId
-            local Servers = TeleportService:GetTeleportSetting("PreferredServers")
-            if Servers then
-                for _, server in pairs(Servers) do
-                    if server.id ~= game.JobId then
-                        print("🔄 Đang chuyển server...")
-                        TeleportService:TeleportToPlaceInstance(PlaceId, server.id, game.Players.LocalPlayer)
-                        break
-                    end
-                end
+-- Load thư viện hỗ trợ
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Hàm tìm người chơi gần nhất
+function GetNearestPlayer()
+    local nearest, distance = nil, math.huge
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local mag = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).magnitude
+            if mag < distance then
+                distance = mag
+                nearest = player
             end
         end
     end
+    return nearest
 end
-loadstring(game:HttpGet("https://raw.githubusercontent.com/taitran1501/fsd/refs/heads/main/sd"))()
+
+-- Hàm teleport đến mục tiêu
+function TeleportTo(target)
+    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+    end
+end
+
+-- Hàm auto kill
+function AutoKill()
+    while _G.Settings.AutoKill do
+        local target = GetNearestPlayer()
+        if target then
+            if _G.Settings.AutoTeleport then TeleportTo(target) end
+            -- Spam skill (ví dụ skill Z, X, C)
+            game:GetService("VirtualInputManager"):SendKeyEvent(true, "Z", false, game)
+            game:GetService("VirtualInputManager"):SendKeyEvent(true, "X", false, game)
+            game:GetService("VirtualInputManager"):SendKeyEvent(true, "C", false, game)
+        end
+        wait(_G.Settings.KillDelay)
+    end
+end
+
+-- Hàm né đòn
+function AutoDodge()
+    while _G.Settings.AutoDodge do
+        local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid and humanoid.Health < humanoid.MaxHealth * 0.5 then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(10, 0, 0)
+        end
+        wait(0.2)
+    end
+end
+
+-- Hàm đổi server
+function ServerHop()
+    while _G.Settings.AutoServerHop do
+        local players = #Players:GetPlayers()
+        if players < 2 then
+            -- Gọi API đổi server (Cần Executor hỗ trợ)
+            game:GetService("TeleportService"):Teleport(game.PlaceId)
+        end
+        wait(10)
+    end
+end
+
+-- Chạy script
+spawn(AutoKill)
+spawn(AutoDodge)
+spawn(ServerHop)
